@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:bti="http://www.mulesoft.org/schema/mule/ee/bti" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/bti http://www.mulesoft.org/schema/mule/ee/bti/current/mule-bti-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="eaf2b1f4-1bb7-4c44-be51-e515003822db" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="668814e3-7a12-43c1-8672-51e04389ef79" >
+		<http:request-connection host="6316a7a833e540a6d3970bfc.mockapi.io" protocol="HTTPS"/>
+	</http:request-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="c2e9ae8d-37c8-49f7-9cfc-0ea4c0a88fc7" >
+		<salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" />
+	</salesforce:sfdc-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="d48ba20b-dafa-4ab4-ae78-1b74408b77a4" file="credentials/mdengler-credentials-file.properties" />
+	<flow name="api-to-salesforce-example-flow" doc:id="8341cbbb-22fd-44bd-9abb-3b50a5b91dd6" >
+		<http:listener doc:name="Listener" doc:id="069c286c-4ca3-4771-91b0-1767c0236f63" config-ref="HTTP_Listener_config" path="/communitiesToSalesforce"/>
+		<http:request method="GET" doc:name="GET Community Data from API" doc:id="a6abced7-1a9c-4aa1-b044-49399ffc1650" config-ref="HTTP_Request_configuration" path="/apartments"/>
+		<ee:transform doc:name="Map API Fields to Salesforce Fields" doc:id="ddc02212-c032-4c2c-ac81-3702abddcf18" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	Name: payload01.propertyName,
+	Property_Address__c: payload01.street,
+	Property_City__c: payload01.city,
+	Property_State__c: payload01.state,
+	Property_ZipCode__c: payload01.zipCode,
+	Property_Country__c: payload01.country,
+	Number_of_Apartments__c: payload01.numberOfUnits as Number,
+	Number_of_Buildings__c: payload01.buildingsOnProperty as Number,
+	Management_Company__c: payload01.parentManagementCompany,
+	Phone_Number__c: payload01.phone,
+	Website__c: payload01.website,
+	Supervisor_Name__c: payload01.pointOfContact,
+	Number_of_Stories__c: payload01.storiesInBuilding as Number,
+	Email__c: payload01.email
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Insert / Update Community" doc:id="6c112e95-4947-41c1-940f-d5dafafb6e5f" config-ref="Salesforce_Config" objectType="Community__c" externalIdFieldName="Name"/>
+		<ee:transform doc:name="Craft Response to User" doc:id="52fda3f3-e928-4e7c-9c92-1aeb1b2070c7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[output application/json
+---
+{
+	"Communities Added to Salesforce": payload.items[0].successful	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

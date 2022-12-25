@@ -1,0 +1,34 @@
+[
+{
+	"propertyName": "55th at Wade",
+	"parentManagementCompany": "Encore Properties",
+	"website": "55atwade.com",
+	"phone": "919-944-8558",
+	"email": "stacy.dorsett@55atwade.com",
+	"pointOfContact": "Stacy Dorsett",
+	"street": "55 Wade Avenue",
+	"city": "Raleigh",
+	"state": "North Carolina",
+	"zipCode": "27784",
+	"country": "USA",
+	"buildingsOnProperty": "1",
+	"storiesInBuilding": "22",
+	"numberOfUnits": "367"
+},
+{
+	"propertyName": "Lennox 109",
+	"parentManagementCompany": "Excalibur Property Management",
+	"website": "lennoxapts109.com",
+	"phone": "424-335-3982",
+	"email": "James.Patterson@lennoxapts109.com",
+	"pointOfContact": "James Patterson",
+	"street": "4456 Lennox Parkway",
+	"city": "Atlanta",
+	"state": "Georgia",
+	"zipCode": "30004",
+	"country": "USA",
+	"buildingsOnProperty": "1",
+	"storiesInBuilding": "31",
+	"numberOfUnits": "412"
+}
+]
